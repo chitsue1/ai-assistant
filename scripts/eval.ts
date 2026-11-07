@@ -10,6 +10,7 @@ type Check = {
   excludes?: string[]; // none of these may appear
   maxChars?: number;
   leadSaved?: boolean;
+  noGeorgian?: boolean; // reply must not contain Georgian letters
 };
 type Scenario = { name: string; turns: string[]; check: Check };
 
@@ -52,7 +53,12 @@ const scenarios: Scenario[] = [
   {
     name: "answers in English when asked in English",
     turns: ["Do you replace laptop batteries? How much?"],
-    check: { includesAny: ["150", "350"], excludes: ["ლარი ღირს"] },
+    check: { includesAny: ["150", "350"], noGeorgian: true },
+  },
+  {
+    name: "answers in Russian when asked in Russian",
+    turns: ["Сколько стоит замена экрана на iPhone 11?"],
+    check: { includesAny: ["180", "320"], noGeorgian: true },
   },
   {
     name: "two questions in one",
@@ -99,6 +105,7 @@ async function main() {
     if (c.includesAny && !c.includesAny.some((x) => r.reply.includes(x))) problems.push(`missing one of ${c.includesAny.join(" / ")}`);
     for (const x of c.excludes ?? []) if (r.reply.includes(x)) problems.push(`contains "${x}"`);
     if (c.maxChars && r.reply.length > c.maxChars) problems.push(`${r.reply.length} chars, max ${c.maxChars}`);
+    if (c.noGeorgian && /[\u10D0-\u10FF]/.test(r.reply)) problems.push("answered in Georgian");
     if (c.leadSaved !== undefined && Boolean(r.debug?.leadSaved) !== c.leadSaved) problems.push("lead not saved");
 
     const ok = problems.length === 0;
