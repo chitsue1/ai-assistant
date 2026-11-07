@@ -10,7 +10,8 @@
     "seed": "tsx scripts/ingest.ts data/demo",
     "ingest": "tsx scripts/ingest.ts",
     "test:router": "tsx scripts/test-router.ts",
-    "bootstrap": "tsx scripts/bootstrap.ts"
+    "bootstrap": "tsx scripts/bootstrap.ts",
+    "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.6.0",

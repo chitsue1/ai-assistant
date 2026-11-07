@@ -70,7 +70,7 @@ body { margin: 0; }
 .meta { margin: 4px 2px 0; font-size: 0.72rem; color: var(--muted); }
 .route-FAQ { color: var(--faq); }
 .route-LLM { color: var(--llm); }
-.route-GUARD, .route-DEMO { color: var(--warn); }
+.route-GUARD, .route-DEMO, .route-ERROR { color: var(--warn); }
 .chat-error { margin: 0; padding: 8px 18px; color: #a12a2a; font-size: 0.85rem; }
 .chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
 .chat-form input {

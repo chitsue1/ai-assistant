@@ -32,6 +32,7 @@ export type TenantConfig = {
   handoff: string; // what to say when it can't help
   contacts?: string;
   rules?: string[]; // extra do's and don'ts
+  telegramChatId?: string; // where new leads are sent (phase 2)
 };
 
 export type FaqEntry = {

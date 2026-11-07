@@ -4,7 +4,8 @@
 import { randomUUID } from "node:crypto";
 import { q } from "./db";
 import { loadTenant, type TenantBundle } from "./knowledge";
-import { aiEnabled, askClaude, type Turn } from "./llm";
+import { saveLead } from "./leads";
+import { aiEnabled, askClaude, type LlmResult, type ToolHandler, type Turn } from "./llm";
 import { matchFaq, retrieve } from "./match";
 import { buildSystemPrompt, useFullContext, wrapWithContext } from "./prompt";
 import { similarity, soundKey, trigrams } from "./text";
@@ -12,9 +13,9 @@ import { similarity, soundKey, trigrams } from "./text";
 const FAQ_THRESHOLD = Number(process.env.FAQ_MATCH_THRESHOLD ?? 0.62);
 const MAX_MESSAGE_CHARS = 800;
 const MAX_MESSAGES_PER_CONVERSATION = 40;
-const HISTORY_TURNS = 6;
+const HISTORY_MESSAGES = 10; // last 5 exchanges; cheap thanks to caching, enough for follow-ups
 
-export type Route = "FAQ" | "LLM" | "GUARD" | "DEMO";
+export type Route = "FAQ" | "LLM" | "GUARD" | "DEMO" | "ERROR";
 
 export type ChatResult = {
   conversationId: string;
@@ -27,6 +28,8 @@ export type ChatResult = {
     sources?: string[];
     tokens?: { input: number; output: number; cacheRead: number; cacheWrite: number };
     costUsd?: number;
+    tools?: string[];
+    leadSaved?: boolean;
     latencyMs: number;
   };
 };
@@ -78,7 +81,9 @@ export async function answer(slug: string, rawMessage: string, conversationId?: 
 
   // ---- Step 2: pick the knowledge the model will see ----------------------------------------
   const full = useFullContext(bundle);
-  const chunks = full ? [] : retrieve(bundle, message);
+  // Search with the previous question too, so "და 14-ის?" still finds the iPhone screen prices.
+  const previousQuestion = history.find((m) => m.role === "user")?.content ?? "";
+  const chunks = full ? [] : retrieve(bundle, isFollowUp ? `${previousQuestion} ${message}` : message);
   const sources = full ? ["მთელი ცოდნის ბაზა"] : chunks.map((c) => c.title);
 
   // ---- No API key: demo mode shows what would happen ----------------------------------------
@@ -97,12 +102,50 @@ export async function answer(slug: string, rawMessage: string, conversationId?: 
 
   // ---- Step 3: ask Claude Haiku ---------------------------------------------------------------
   const turns: Turn[] = history
-    .slice(0, HISTORY_TURNS)
+    .slice(0, HISTORY_MESSAGES)
     .reverse()
     .map((m) => ({ role: m.role, content: m.content }));
   turns.push({ role: "user", content: full ? message : wrapWithContext(message, chunks) });
 
-  const result = await askClaude(buildSystemPrompt(bundle), turns);
+  let leadSaved = false;
+  const tools: ToolHandler[] = [
+    {
+      definition: {
+        name: "save_lead",
+        description:
+          "Save the customer's phone number (and name, if given) so a person from the company calls them back. " +
+          "Call only after the customer has written their phone number in this conversation.",
+        input_schema: {
+          type: "object",
+          properties: {
+            phone: { type: "string", description: "Phone number exactly as the customer wrote it" },
+            name: { type: "string", description: "Customer's name, if they gave it" },
+            topic: { type: "string", description: "One line in Georgian: what the customer needs" },
+          },
+          required: ["phone", "topic"],
+        },
+      },
+      run: async (input) => {
+        const r = await saveLead(tenant, convId, input as { phone: string; name?: string; topic: string });
+        if (!r.ok) return "The phone number looks invalid. Ask the customer to check it.";
+        leadSaved = true;
+        return "Saved. A person from the company will call the customer during working hours.";
+      },
+    },
+  ];
+
+  let result: LlmResult;
+  try {
+    result = await askClaude(buildSystemPrompt(bundle), turns, tools);
+  } catch (e) {
+    // The AI is down, out of credit or too slow: the customer still gets a useful answer, never an error.
+    console.error("LLM call failed", e);
+    const reply = tenant.config.handoff;
+    const latencyMs = Date.now() - started;
+    await saveTurn(convId, message, reply, { route: "ERROR", latencyMs });
+    return { conversationId: convId, reply, route: "ERROR", debug: { sources, latencyMs } };
+  }
+
   const reply = result.refused ? tenant.config.handoff : result.text;
   const latencyMs = Date.now() - started;
 
@@ -114,7 +157,10 @@ export async function answer(slug: string, rawMessage: string, conversationId?: 
   });
 
   // ---- Step 4: learn. A first question answered well becomes a suggested ready answer. --------
-  if (history.length === 0 && !result.refused && reply !== tenant.config.handoff) {
+  // Never from answers that used a tool or contain someone's phone number: those are personal.
+  const isHandoff = reply.includes(tenant.config.handoff.slice(0, 40));
+  const personal = result.toolCalls.length > 0 || /\d{6,}/.test(message.replace(/\s/g, ""));
+  if (history.length === 0 && !result.refused && !isHandoff && !personal) {
     await suggestFaq(bundle, message, reply);
   }
 
@@ -127,6 +173,8 @@ export async function answer(slug: string, rawMessage: string, conversationId?: 
       sources,
       tokens: result.usage,
       costUsd: result.costUsd,
+      tools: result.toolCalls.map((t) => t.name),
+      leadSaved,
       latencyMs,
     },
   };

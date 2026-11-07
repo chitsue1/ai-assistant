@@ -46,6 +46,10 @@ export default async function Admin({ searchParams }: { searchParams: { token?: 
      FROM faq_entries f JOIN tenants t ON t.id = f.tenant_id
      WHERE f.status = 'CANDIDATE' ORDER BY f.hits DESC, f.created_at DESC LIMIT 50`,
   );
+  const leads = await q<{ created_at: Date; company: string; name: string | null; phone: string; topic: string; notified: boolean }>(
+    `SELECT l.created_at, t.name AS company, l.name, l.phone, l.topic, l.notified
+     FROM leads l JOIN tenants t ON t.id = l.tenant_id ORDER BY l.id DESC LIMIT 50`,
+  );
   const recent = await q<{ created_at: Date; question: string; reply: string; route: string; cost_usd: number | null; latency_ms: number | null }>(
     `SELECT a.created_at, u.content AS question, a.content AS reply, a.route, a.cost_usd, a.latency_ms
      FROM messages a
@@ -74,6 +78,29 @@ export default async function Admin({ searchParams }: { searchParams: { token?: 
           ))}
         </tbody>
       </table>
+
+      <h2>Leads ({leads.length})</h2>
+      <p className="muted">Customers who left a phone number in the chat.</p>
+      {leads.length === 0 ? (
+        <p className="muted">No leads yet.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr><th>When</th><th>Name</th><th>Phone</th><th>Needs</th><th>Telegram</th></tr>
+          </thead>
+          <tbody>
+            {leads.map((l, i) => (
+              <tr key={i}>
+                <td>{new Date(l.created_at).toLocaleString("ka-GE", { timeZone: "Asia/Tbilisi" })}</td>
+                <td>{l.name ?? "–"}<div className="muted">{l.company}</div></td>
+                <td><a href={`tel:${l.phone}`}>{l.phone}</a></td>
+                <td>{l.topic}</td>
+                <td>{l.notified ? "sent" : "–"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       <h2>Suggested ready answers ({candidates.length})</h2>
       <p className="muted">

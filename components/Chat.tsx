@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
-type Route = "FAQ" | "LLM" | "GUARD" | "DEMO";
+type Route = "FAQ" | "LLM" | "GUARD" | "DEMO" | "ERROR";
 type Msg = {
   role: "user" | "assistant";
   text: string;
@@ -17,6 +17,7 @@ const ROUTE_LABEL: Record<Route, string> = {
   LLM: "Claude Haiku",
   GUARD: "დაცვა",
   DEMO: "დემო რეჟიმი",
+  ERROR: "AI მიუწვდომელია",
 };
 
 export default function Chat({
@@ -84,7 +85,9 @@ export default function Chat({
           detail:
             data.route === "FAQ"
               ? `დამთხვევა ${Math.round((d.faqScore ?? 0) * 100)}%`
-              : d.tokens
+              : d.leadSaved
+                ? "ნომერი შენახულია"
+                : d.tokens
                 ? `${d.tokens.input + d.tokens.cacheRead + d.tokens.cacheWrite} ტოკენი შემავალი, ${d.tokens.output} გამავალი`
                 : undefined,
         },
