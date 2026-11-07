@@ -9,7 +9,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "seed": "tsx scripts/ingest.ts data/demo",
     "ingest": "tsx scripts/ingest.ts",
-    "test:router": "tsx scripts/test-router.ts"
+    "test:router": "tsx scripts/test-router.ts",
+    "bootstrap": "tsx scripts/bootstrap.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.6.0",
@@ -17,14 +18,14 @@
     "next": "14.2.35",
     "pg": "^8.23.1",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "tsx": "4.23.15"
   },
   "devDependencies": {
     "@types/node": "20.14.10",
     "@types/pg": "^8.23.1",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "tsx": "4.23.15",
     "typescript": "5.5.3"
   },
   "engines": {
