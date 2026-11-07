@@ -124,9 +124,8 @@ API key-ის გარეშე ასისტენტი დემო რ�
    - `DATABASE_URL` = `${{Postgres.DATABASE_URL}}` (Railway-ის reference)
    - `ANTHROPIC_API_KEY` = შენი key, console.anthropic.com-დან
    - `ADMIN_TOKEN` = გრძელი შემთხვევითი სტრიქონი
-4. Settings → Deploy → **Pre-deploy command**: `npm run db:migrate`
-5. პირველი დეპლოის შემდეგ ერთხელ ჩატვირთე კომპანია: Railway → სერვისი → Shell → `npm run seed`
-6. Settings → Networking → **Generate Domain**. ეს ლინკი დაამატე პორტფოლიოში.
+4. მიგრაცია და სადემონსტრაციო მონაცემები ყოველი დეპლოის წინ ავტომატურად ეშვება. ეს `railway.json`-შია (`preDeployCommand`).
+5. Settings → Networking → **Generate Domain**. ეს ლინკი დაამატე პორტფოლიოში.
 
 API key არასოდეს ჩაწერო კოდში და არ დააკომიტო: მხოლოდ Railway Variables-ში და ლოკალურ `.env`-ში, რომელიც `.gitignore`-შია.
 
