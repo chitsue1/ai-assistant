@@ -1,0 +1,96 @@
+:root {
+  --ink: #1b1f1c;
+  --muted: #5d665f;
+  --line: #dfe3dc;
+  --paper: #f6f7f3;
+  --card: #ffffff;
+  --brand: #1f3d2b;
+  --brand-soft: #e5efe7;
+  --faq: #1f7a4d;
+  --llm: #5b4bc4;
+  --warn: #a35a00;
+  font-family: "Noto Sans Georgian Variable", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* ---- Demo landing page ---------------------------------------------------- */
+.home {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 56px 24px;
+  display: grid;
+  gap: 48px;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  align-items: start;
+}
+.intro h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 16px; }
+.lead { font-size: 1.1rem; line-height: 1.65; color: var(--muted); max-width: 58ch; margin: 0; }
+.steps { margin: 32px 0 0; padding-left: 1.2rem; display: grid; gap: 14px; line-height: 1.6; max-width: 60ch; }
+.steps strong { color: var(--ink); }
+.stats { display: flex; gap: 32px; margin: 36px 0 0; padding: 20px 0 0; border-top: 1px solid var(--line); }
+.stats dt { font-size: 0.85rem; color: var(--muted); }
+.stats dd { margin: 4px 0 0; font-size: 1.6rem; font-weight: 600; }
+.note { margin-top: 28px; font-size: 0.92rem; color: var(--muted); line-height: 1.6; max-width: 60ch; }
+.demo { position: sticky; top: 24px; height: 640px; }
+
+@media (max-width: 900px) {
+  .home { grid-template-columns: 1fr; padding: 32px 16px; }
+  .demo { position: static; height: 600px; }
+}
+
+/* ---- Chat ----------------------------------------------------------------- */
+.embed { height: 100vh; }
+.chat {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.embed .chat { border: 0; border-radius: 0; }
+.chat-head { display: flex; gap: 12px; align-items: center; padding: 14px 18px; background: var(--brand); color: #fff; }
+.chat-head .dot { width: 10px; height: 10px; border-radius: 50%; background: #7ee2a8; }
+.chat-name { margin: 0; font-weight: 600; }
+.chat-sub { margin: 2px 0 0; font-size: 0.8rem; opacity: 0.8; }
+.chat-list { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.msg { display: flex; flex-direction: column; max-width: 85%; }
+.msg.user { align-self: flex-end; align-items: flex-end; }
+.bubble { margin: 0; padding: 10px 14px; border-radius: 14px; line-height: 1.55; white-space: pre-wrap; font-size: 0.95rem; }
+.assistant .bubble { background: var(--brand-soft); border-top-left-radius: 4px; }
+.user .bubble { background: var(--brand); color: #fff; border-top-right-radius: 4px; }
+.typing { color: var(--muted); }
+.meta { margin: 4px 2px 0; font-size: 0.72rem; color: var(--muted); }
+.route-FAQ { color: var(--faq); }
+.route-LLM { color: var(--llm); }
+.route-GUARD, .route-DEMO { color: var(--warn); }
+.chat-error { margin: 0; padding: 8px 18px; color: #a12a2a; font-size: 0.85rem; }
+.chat-form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+.chat-form input {
+  flex: 1; min-width: 0; padding: 11px 14px; border: 1px solid var(--line); border-radius: 999px;
+  font: inherit; font-size: 0.95rem; background: var(--paper);
+}
+.chat-form button {
+  padding: 0 18px; border: 0; border-radius: 999px; background: var(--brand); color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+}
+.chat-form button:disabled { opacity: 0.5; cursor: default; }
+
+/* ---- Admin ---------------------------------------------------------------- */
+.admin { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+.admin h1 { margin: 0 0 8px; }
+.admin h2 { margin: 40px 0 12px; font-size: 1.2rem; }
+.admin table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 0.9rem; }
+.admin th, .admin td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.admin th { font-weight: 600; color: var(--muted); font-size: 0.8rem; }
+.admin .actions { display: flex; gap: 8px; }
+.admin button { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; }
+.admin button.approve { background: var(--faq); color: #fff; border-color: var(--faq); }
+.admin textarea { width: 100%; min-height: 70px; font: inherit; font-size: 0.88rem; padding: 6px; border: 1px solid var(--line); border-radius: 6px; }
+.admin .muted { color: var(--muted); }
